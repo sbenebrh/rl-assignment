@@ -26,7 +26,7 @@ CONFIG = {
     "target_sync_freq":  10_000,    # hard sync target net every 10k env steps
     "eval_freq":         10_000,    # evaluate every 10k env steps (assignment req.)
     "eval_episodes":     10,        # number of episodes per evaluation
-    "max_steps":         3_000_000, # total env steps per run
+    "max_steps":         1_000_000, # total env steps per run
 }
 
 
