@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# Training artifacts (large + reproducible)
+checkpoints/*.pt
+checkpoints/*.pth
+logs/*.csv
+logs/*.json
+logs/tb/
+runs/
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+
+# Reports — keep the final PDF, ignore intermediate
+report/build/
+report/*.aux
+report/*.log
+report/*.out
+
+# Plots are regenerated from logs
+plots/*.png
+plots/*.pdf
+!plots/.gitkeep

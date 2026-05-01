@@ -1,0 +1,23 @@
+# Deep learning
+torch>=2.2.0
+torchvision>=0.17.0
+
+# Atari environment (ALE through Gymnasium)
+gymnasium[atari]>=0.29.0
+ale-py>=0.9.0
+autorom[accept-rom-license]>=0.6.1
+
+# Image preprocessing (used by the DQN paper's pipeline: grayscale + resize)
+opencv-python>=4.9.0
+numpy>=1.26.0
+Pillow>=10.0.0
+
+# Plotting evaluation curves for the report (3 runs x reward-vs-steps)
+matplotlib>=3.8.0
+
+# Quality-of-life
+tqdm>=4.66.0
+tensorboard>=2.15.0   # optional but very useful while debugging
+
+# Dev / tests
+pytest>=8.0.0
