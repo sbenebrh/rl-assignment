@@ -16,17 +16,17 @@ CONFIG = {
     "buffer_size":       500_000,
     "batch_size":        32,
     "gamma":             0.99,
-    "lr":                1e-4,
+    "lr":                0.00025,   # RMSProp-style value, more stable than 1e-4 with Adam
     "eps_start":         1.0,
-    "eps_end":           0.1,
-    "eps_decay_steps":   500_000,   # paper uses 1M
-    "eval_eps":          0.05,      # small ε during eval to avoid determinism traps
-    "learning_starts":   50_000,    # fill buffer before first gradient step
-    "train_freq":        4,         # one gradient step every 4 env steps
-    "target_sync_freq":  10_000,    # hard sync target net every 10k env steps
-    "eval_freq":         10_000,    # evaluate every 10k env steps (assignment req.)
-    "eval_episodes":     10,        # number of episodes per evaluation
-    "max_steps":         1_000_000, # total env steps per run
+    "eps_end":           0.05,      # decay to 0.05 instead of 0.1 — more exploitation
+    "eps_decay_steps":   250_000,   # faster decay → exploit sooner
+    "eval_eps":          0.05,
+    "learning_starts":   10_000,    # start learning earlier (smaller warm-up)
+    "train_freq":        4,
+    "target_sync_freq":  10_000,
+    "eval_freq":         10_000,
+    "eval_episodes":     10,
+    "max_steps":         3_000_000,
 }
 
 
