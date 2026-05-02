@@ -32,6 +32,8 @@ CONFIG = {
 
 # ── Evaluation ───────────────────────────────────────────────────────────────
 
+MAX_EVAL_STEPS = 5_000   # cap per episode — prevents eval hanging on long rallies
+
 def evaluate(agent, n_episodes):
     """Run n_episodes with eval policy, return mean unclipped reward."""
     env = make_env(CONFIG["game"])
@@ -40,11 +42,13 @@ def evaluate(agent, n_episodes):
         state, _ = env.reset()
         episode_reward = 0.0
         done = False
-        while not done:
+        steps = 0
+        while not done and steps < MAX_EVAL_STEPS:
             action = agent.select_action(state, eval_mode=True)
             state, reward, terminated, truncated, _ = env.step(action)
             episode_reward += reward          # unclipped — this is the real score
             done = terminated or truncated
+            steps += 1
         rewards.append(episode_reward)
     env.close()
     return float(np.mean(rewards))
@@ -68,14 +72,23 @@ def train(run_id, seed):
     print(f"  Game: {CONFIG['game']} | Actions: {n_actions}")
     print(f"{'='*55}\n")
 
-    # CSV log: one row per evaluation point
+    # CSV log: append if resuming, else write fresh header
     log_path = f"logs/run{run_id}_eval.csv"
-    with open(log_path, "w", newline="") as f:
-        csv.writer(f).writerow(["step", "mean_reward"])
+    resume_checkpoint = f"checkpoints/run{run_id}_best.pt"
+    if os.path.exists(resume_checkpoint) and os.path.exists(log_path):
+        agent.load(resume_checkpoint)
+        total_steps = agent.total_steps
+        best_reward = max(float(r) for _, r in (
+            row.split(",") for row in open(log_path).read().strip().split("\n")[1:]
+        ) if r)
+        print(f"  Resuming from step {total_steps:,} | best so far: {best_reward:.1f}")
+    else:
+        with open(log_path, "w", newline="") as f:
+            csv.writer(f).writerow(["step", "mean_reward"])
+        total_steps = 0
+        best_reward = -float("inf")
 
     state, _ = env.reset()
-    best_reward = -float("inf")
-    total_steps = 0          # counts env.step() calls — assignment's definition
 
     while total_steps < CONFIG["max_steps"]:
 
