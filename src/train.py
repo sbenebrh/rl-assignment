@@ -13,19 +13,19 @@ from src.agent import DQNAgent
 
 CONFIG = {
     "game":              "BreakoutNoFrameskip-v4",
-    "buffer_size":       100_000,   # smaller buffer → fills faster, less RAM pressure
+    "buffer_size":       250_000,   # paper uses 1M, 250k is a memory-conscious compromise
     "batch_size":        32,
     "gamma":             0.99,
     "lr":                0.00025,
     "eps_start":         1.0,
     "eps_end":           0.05,
-    "eps_decay_steps":   200_000,
+    "eps_decay_steps":   500_000,   # longer decay — needs to explore more before exploiting
     "eval_eps":          0.05,
-    "learning_starts":   10_000,
+    "learning_starts":   50_000,    # paper value — fill buffer with diverse experience
     "train_freq":        4,
-    "target_sync_freq":  1_000,     # sync target more often → more stable signal
+    "target_sync_freq":  10_000,    # paper value — gives target net time to be stable
     "eval_freq":         10_000,
-    "eval_episodes":     10,
+    "eval_episodes":     5,         # fewer eval episodes for speed (was 10)
     "max_steps":         3_000_000,
 }
 
