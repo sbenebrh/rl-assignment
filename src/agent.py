@@ -23,7 +23,10 @@ class DQNAgent:
         self.target_net.load_state_dict(self.online_net.state_dict())
         self.target_net.eval()
 
-        self.optimizer = torch.optim.Adam(self.online_net.parameters(), lr=config["lr"])
+        self.optimizer = torch.optim.RMSprop(
+            self.online_net.parameters(),
+            lr=config["lr"], alpha=0.95, eps=0.01, momentum=0.0
+        )
         self.buffer = ReplayBuffer(config["buffer_size"])
 
         # Counts every env.step() call (used for eps decay)
