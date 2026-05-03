@@ -19,7 +19,7 @@ CONFIG = {
     "lr":                0.00025,
     "eps_start":         1.0,
     "eps_end":           0.05,
-    "eps_decay_steps":   500_000,   # longer decay — needs to explore more before exploiting
+    "eps_decay_steps":   1_000_000, # paper-scale decay — agent explores long enough to learn
     "eval_eps":          0.05,
     "learning_starts":   50_000,    # paper value — fill buffer with diverse experience
     "train_freq":        4,
@@ -36,7 +36,7 @@ MAX_EVAL_STEPS = 5_000   # cap per episode — prevents eval hanging on long ral
 
 def evaluate(agent, n_episodes):
     """Run n_episodes with eval policy, return mean unclipped reward."""
-    env = make_env(CONFIG["game"])
+    env = make_env(CONFIG["game"], episodic_life=False)
     rewards = []
     for _ in range(n_episodes):
         state, _ = env.reset()
