@@ -1,5 +1,5 @@
 """
-Record a video of a trained DQN agent playing Breakout.
+Record a video of a trained DQN agent playing Seaquest.
 Usage:
     python -m src.record --checkpoint checkpoints/run1_best.pt
     python -m src.record --checkpoint checkpoints/run1_best.pt --episodes 3 --out plots/
@@ -57,7 +57,7 @@ def record(checkpoint_path, n_episodes, out_dir):
         print(f"  Episode {ep + 1}: reward = {episode_reward:.1f} | frames = {len(frames)}")
 
         # Write video with OpenCV
-        out_path = os.path.join(out_dir, f"breakout_ep{ep + 1}.mp4")
+        out_path = os.path.join(out_dir, f"seaquest_ep{ep + 1}.mp4")
         h, w = frames[0].shape[:2]
         writer = cv2.VideoWriter(
             out_path,

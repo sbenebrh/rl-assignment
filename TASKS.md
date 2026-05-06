@@ -1,6 +1,6 @@
 # DQN Assignment — Task List
 
-Deadline: **2026-05-13** | Team of 2 | Game: TBD
+Deadline: **2026-05-13** | Team of 2 | Game: **Seaquest** (`SeaquestNoFrameskip-v4`)
 
 ---
 

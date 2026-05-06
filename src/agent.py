@@ -65,11 +65,12 @@ class DQNAgent:
             self.config["batch_size"]
         )
 
-        states      = torch.tensor(states).to(self.device)
-        actions     = torch.tensor(actions).to(self.device)
-        rewards     = torch.tensor(rewards).to(self.device)
-        next_states = torch.tensor(next_states).to(self.device)
-        dones       = torch.tensor(dones, dtype=torch.float32).to(self.device)
+        # from_numpy shares memory until .to(device), avoiding a redundant CPU copy
+        states      = torch.from_numpy(states).to(self.device, non_blocking=True)
+        actions     = torch.from_numpy(actions).to(self.device, non_blocking=True)
+        rewards     = torch.from_numpy(rewards).to(self.device, non_blocking=True)
+        next_states = torch.from_numpy(next_states).to(self.device, non_blocking=True)
+        dones       = torch.from_numpy(dones.astype(np.float32)).to(self.device, non_blocking=True)
 
         # Q(s, a) from the online network
         q_pred = self.online_net(states).gather(1, actions.unsqueeze(1)).squeeze(1)

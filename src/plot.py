@@ -54,7 +54,7 @@ def plot_runs(run_ids, out_path):
 
     ax.set_xlabel("Training steps", fontsize=13)
     ax.set_ylabel("Mean eval reward (unclipped)", fontsize=13)
-    ax.set_title("DQN on BreakoutNoFrameskip-v4 — Learning Curves", fontsize=14)
+    ax.set_title("DQN on SeaquestNoFrameskip-v4 — Learning Curves", fontsize=14)
     ax.legend(fontsize=11)
     ax.grid(True, alpha=0.3)
 

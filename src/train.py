@@ -12,7 +12,7 @@ from src.agent import DQNAgent
 # smaller buffer (500k vs 1M), gradient clipping.
 
 CONFIG = {
-    "game":              "BreakoutNoFrameskip-v4",
+    "game":              "SeaquestNoFrameskip-v4",
     "buffer_size":       250_000,   # paper uses 1M, 250k is a memory-conscious compromise
     "batch_size":        32,
     "gamma":             0.99,

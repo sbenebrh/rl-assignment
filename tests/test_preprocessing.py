@@ -120,7 +120,7 @@ class TestFrameStack:
 class TestMakeEnv:
 
     def test_make_env_runs(self):
-        env = make_env("BreakoutNoFrameskip-v4")
+        env = make_env("SeaquestNoFrameskip-v4")
         obs, info = env.reset()
         assert obs.shape == (4, 84, 84), f"Expected (4,84,84), got {obs.shape}"
         assert obs.dtype == np.uint8

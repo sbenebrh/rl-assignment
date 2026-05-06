@@ -27,7 +27,9 @@ class NoopResetEnv(gym.Wrapper):
 
 
 class FireResetEnv(gym.Wrapper):
-    """Press FIRE on reset — Breakout requires this to launch the ball."""
+    """Press FIRE on reset — required by games like Breakout that need a
+    button press to launch the ball. Seaquest does NOT need this (the sub
+    appears immediately), so this wrapper is opt-in via make_env."""
 
     def __init__(self, env):
         super().__init__(env)
@@ -139,18 +141,32 @@ class FrameStack(gym.Wrapper):
         return np.squeeze(arr, axis=-1)
 
 
-def make_env(game="BreakoutNoFrameskip-v4", episodic_life=True):
+FIRE_ON_RESET_GAMES = ("Breakout", "SpaceInvaders", "Pong")
+
+
+def _needs_fire_on_reset(game: str) -> bool:
+    """Games that require pressing FIRE to start play.
+    Seaquest, MsPacman, Asterix, etc. start automatically and should not get this wrapper."""
+    return any(game.startswith(g) for g in FIRE_ON_RESET_GAMES)
+
+
+def make_env(game="SeaquestNoFrameskip-v4", episodic_life=True, fire_on_reset=None):
     """Compose all wrappers in the correct order.
 
     Wrapper order matters:
-      raw env → NoopReset → MaxAndSkip → EpisodicLife → FireReset → Warp → Stack
+      raw env → NoopReset → MaxAndSkip → EpisodicLife → [FireReset] → Warp → Stack
+
+    fire_on_reset: if None, auto-detect from game name. Set explicitly to override.
     """
     env = gym.make(game)
     env = NoopResetEnv(env, noop_max=30)
     env = MaxAndSkipEnv(env, skip=4)
     if episodic_life:
         env = EpisodicLifeEnv(env)
-    env = FireResetEnv(env)
+    if fire_on_reset is None:
+        fire_on_reset = _needs_fire_on_reset(game)
+    if fire_on_reset:
+        env = FireResetEnv(env)
     env = WarpFrame(env)
     env = FrameStack(env, k=4)
     return env
