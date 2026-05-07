@@ -25,7 +25,7 @@ CONFIG = {
     "train_freq":        4,
     "target_sync_freq":  10_000,    # paper value — gives target net time to be stable
     "eval_freq":         10_000,
-    "eval_episodes":     5,         # fewer eval episodes for speed (was 10)
+    "eval_episodes":     10,        # more episodes = lower variance in reported score
     "max_steps":         3_000_000,
 }
 

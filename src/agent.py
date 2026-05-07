@@ -75,10 +75,11 @@ class DQNAgent:
         # Q(s, a) from the online network
         q_pred = self.online_net(states).gather(1, actions.unsqueeze(1)).squeeze(1)
 
-        # Bellman target: r + γ · max_a' Q_target(s', a') · (1 - done)
-        # torch.no_grad(): target is treated as a constant — no gradient flows through it
+        # Double DQN: online net selects action, target net evaluates it.
+        # Reduces overestimation bias vs. vanilla DQN (van Hasselt et al. 2015).
         with torch.no_grad():
-            q_next = self.target_net(next_states).max(1)[0]
+            best_actions = self.online_net(next_states).argmax(1, keepdim=True)
+            q_next = self.target_net(next_states).gather(1, best_actions).squeeze(1)
             q_target = rewards + self.config["gamma"] * q_next * (1.0 - dones)
 
         # Huber loss (SmoothL1) — more stable than MSE for large errors
