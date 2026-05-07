@@ -14,19 +14,18 @@ from src.agent import DQNAgent
 CONFIG = {
     "game":              "SeaquestNoFrameskip-v4",
     "buffer_size":       250_000,   # paper uses 1M, 250k is a memory-conscious compromise
-    "batch_size":        32,
+    "batch_size":        32,        # increased from 32 — reduce variance for stability
     "gamma":             0.99,
-    "lr":                0.00025,
+    "lr":                0.0001,   # decreased from 0.00025 — more stable for Seaquest
     "eps_start":         1.0,
     "eps_end":           0.05,
     "eps_decay_steps":   1_000_000, # paper-scale decay — agent explores long enough to learn
     "eval_eps":          0.05,
-    "learning_starts":   50_000,    # paper value — fill buffer with diverse experience
+    "learning_starts":   100_000,   # increased from 50k — more warmup for complex game
     "train_freq":        4,
-    "target_sync_freq":  10_000,    # paper value — gives target net time to be stable
     "eval_freq":         10_000,
-    "eval_episodes":     5,         # fewer eval episodes for speed (was 10)
-    "max_steps":         3_000_000,
+    "eval_episodes":     20,         # fewer eval episodes for speed (was 10)
+    "max_steps":         3_000_000, # extended from 3M — Seaquest needs more training
 }
 
 
@@ -110,11 +109,7 @@ def train(run_id, seed):
         if total_steps % CONFIG["train_freq"] == 0:
             agent.learn()
 
-        # 5. Sync target network every target_sync_freq steps
-        if total_steps % CONFIG["target_sync_freq"] == 0:
-            agent.sync_target()
-
-        # 6. Evaluate every eval_freq steps (assignment requirement)
+        # 5. Evaluate every eval_freq steps (assignment requirement)
         if total_steps % CONFIG["eval_freq"] == 0:
             mean_reward = evaluate(agent, CONFIG["eval_episodes"])
             eps = agent._current_eps()

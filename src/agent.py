@@ -17,11 +17,8 @@ class DQNAgent:
         else:
             self.device = torch.device("cpu")
 
-        # Two networks: online (trained) and target (frozen, synced every C steps)
+        # Single Q-network (2013 DQN paper style)
         self.online_net = QNetwork(n_actions).to(self.device)
-        self.target_net = QNetwork(n_actions).to(self.device)
-        self.target_net.load_state_dict(self.online_net.state_dict())
-        self.target_net.eval()
 
         self.optimizer = torch.optim.RMSprop(
             self.online_net.parameters(),
@@ -75,10 +72,11 @@ class DQNAgent:
         # Q(s, a) from the online network
         q_pred = self.online_net(states).gather(1, actions.unsqueeze(1)).squeeze(1)
 
-        # Bellman target: r + γ · max_a' Q_target(s', a') · (1 - done)
+        # Bellman target: r + γ · max_a' Q(s', a') · (1 - done)
         # torch.no_grad(): target is treated as a constant — no gradient flows through it
+        # 2013 paper: uses the same network for both Q(s,a) and target max Q(s',a')
         with torch.no_grad():
-            q_next = self.target_net(next_states).max(1)[0]
+            q_next = self.online_net(next_states).max(1)[0]
             q_target = rewards + self.config["gamma"] * q_next * (1.0 - dones)
 
         # Huber loss (SmoothL1) — more stable than MSE for large errors
@@ -92,17 +90,11 @@ class DQNAgent:
 
         return loss.item()
 
-    # ── Target network sync ──────────────────────────────────────────────────
-
-    def sync_target(self):
-        self.target_net.load_state_dict(self.online_net.state_dict())
-
     # ── Checkpointing ────────────────────────────────────────────────────────
 
     def save(self, path):
         torch.save({
             "online_net":  self.online_net.state_dict(),
-            "target_net":  self.target_net.state_dict(),
             "optimizer":   self.optimizer.state_dict(),
             "total_steps": self.total_steps,
         }, path)
@@ -110,6 +102,5 @@ class DQNAgent:
     def load(self, path):
         ckpt = torch.load(path, map_location=self.device)
         self.online_net.load_state_dict(ckpt["online_net"])
-        self.target_net.load_state_dict(ckpt["target_net"])
         self.optimizer.load_state_dict(ckpt["optimizer"])
         self.total_steps = ckpt["total_steps"]
