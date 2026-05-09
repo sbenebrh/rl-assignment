@@ -13,18 +13,18 @@ from src.agent import DQNAgent
 
 CONFIG = {
     "game":              "SeaquestNoFrameskip-v4",
-    "buffer_size":       250_000,   # paper uses 1M, 250k is a memory-conscious compromise
-    "batch_size":        32,        # increased from 32 — reduce variance for stability
+    "buffer_size":       500_000,   # paper uses 1M, 250k is a memory-conscious compromise
+    "batch_size":        256,       # larger batch to capture more dones/rewards (sparse signal)
     "gamma":             0.99,
-    "lr":                0.0001,   # decreased from 0.00025 — more stable for Seaquest
+    "lr":                0.0001,    # reduced to prevent Q-value explosion
     "eps_start":         1.0,
-    "eps_end":           0.05,
-    "eps_decay_steps":   1_000_000, # paper-scale decay — agent explores long enough to learn
+    "eps_end":           0.1,
+    "eps_decay_steps":   250_000, # paper-scale decay — agent explores long enough to learn
     "eval_eps":          0.05,
-    "learning_starts":   100_000,   # increased from 50k — more warmup for complex game
-    "train_freq":        4,
+    "learning_starts":   50_000,   # increased from 50k — more warmup for complex game
+    "train_freq":        1,         # paper: update every action (not every 4)
     "eval_freq":         10_000,
-    "eval_episodes":     20,         # fewer eval episodes for speed (was 10)
+    "eval_episodes":     10,         # fewer eval episodes for speed (was 10)
     "max_steps":         3_000_000, # extended from 3M — Seaquest needs more training
 }
 
@@ -88,6 +88,7 @@ def train(run_id, seed):
         best_reward = -float("inf")
 
     state, _ = env.reset()
+    recent_losses = []  # Track losses for averaging
 
     while total_steps < CONFIG["max_steps"]:
 
@@ -107,17 +108,22 @@ def train(run_id, seed):
 
         # 4. Learn every train_freq steps (after warm-up)
         if total_steps % CONFIG["train_freq"] == 0:
-            agent.learn()
+            loss = agent.learn()
+            if loss is not None:
+                recent_losses.append(loss)
 
         # 5. Evaluate every eval_freq steps (assignment requirement)
         if total_steps % CONFIG["eval_freq"] == 0:
             mean_reward = evaluate(agent, CONFIG["eval_episodes"])
             eps = agent._current_eps()
+            avg_loss = sum(recent_losses) / len(recent_losses) if recent_losses else 0.0
             print(
                 f"  step={total_steps:>8,} | "
                 f"eps={eps:.3f} | "
+                f"loss={avg_loss:.4f} | "
                 f"eval_reward={mean_reward:.1f}"
             )
+            recent_losses = []  # Reset for next interval
 
             with open(log_path, "a", newline="") as f:
                 csv.writer(f).writerow([total_steps, mean_reward])

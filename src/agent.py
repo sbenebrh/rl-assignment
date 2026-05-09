@@ -35,7 +35,8 @@ class DQNAgent:
         eps = self.config["eval_eps"] if eval_mode else self._current_eps()
         if np.random.random() < eps:
             return np.random.randint(self.n_actions)
-        state_t = torch.tensor(state, dtype=torch.float32).unsqueeze(0).to(self.device)
+        # Normalize pixel values to [0, 1] (same as in learn())
+        state_t = torch.tensor(state, dtype=torch.float32).unsqueeze(0).to(self.device) / 255.0
         with torch.no_grad():
             return self.online_net(state_t).argmax().item()
 
@@ -63,11 +64,12 @@ class DQNAgent:
         )
 
         # from_numpy shares memory until .to(device), avoiding a redundant CPU copy
-        states      = torch.from_numpy(states).to(self.device, non_blocking=True)
-        actions     = torch.from_numpy(actions).to(self.device, non_blocking=True)
-        rewards     = torch.from_numpy(rewards).to(self.device, non_blocking=True)
-        next_states = torch.from_numpy(next_states).to(self.device, non_blocking=True)
-        dones       = torch.from_numpy(dones.astype(np.float32)).to(self.device, non_blocking=True)
+        # Note: buffer.sample() already returns float32 in [0,1] (normalized)
+        states      = torch.from_numpy(states).to(self.device)
+        actions     = torch.from_numpy(actions).to(self.device)
+        rewards     = torch.from_numpy(rewards).to(self.device)
+        next_states = torch.from_numpy(next_states).to(self.device)
+        dones       = torch.tensor(dones, dtype=torch.float32, device=self.device)
 
         # Q(s, a) from the online network
         q_pred = self.online_net(states).gather(1, actions.unsqueeze(1)).squeeze(1)
@@ -79,13 +81,20 @@ class DQNAgent:
             q_next = self.online_net(next_states).max(1)[0]
             q_target = rewards + self.config["gamma"] * q_next * (1.0 - dones)
 
-        # Huber loss (SmoothL1) — more stable than MSE for large errors
-        loss = nn.functional.smooth_l1_loss(q_pred, q_target)
+        # MSE loss (as in 2013 paper)
+        loss = nn.functional.mse_loss(q_pred, q_target)
+
+        # DEBUG: print Q-values every 10k steps
+        if self.total_steps % 10000 < 2:
+            total_dones = self.buffer._dones[:self.buffer._size].sum()
+            total_rewards = (self.buffer._rewards[:self.buffer._size] != 0).sum()
+            print(f"  DEBUG: buffer has {total_dones} dones, {total_rewards} non-zero rewards out of {self.buffer._size} | "
+                  f"batch dones={dones.sum().item():.0f}/{len(dones)} | "
+                  f"loss={loss.item():.6f}")
 
         self.optimizer.zero_grad()
         loss.backward()
-        # Gradient clipping prevents exploding gradients
-        nn.utils.clip_grad_norm_(self.online_net.parameters(), 10.0)
+        nn.utils.clip_grad_norm_(self.online_net.parameters(), 1.0)
         self.optimizer.step()
 
         return loss.item()

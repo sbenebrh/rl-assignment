@@ -7,16 +7,17 @@ class QNetwork(nn.Module):
     def __init__(self, n_actions):
         super().__init__()
 
+        # Architecture from 2013 DQN paper (arXiv version)
         self.conv = nn.Sequential(
-            nn.Conv2d(4,  32, kernel_size=8, stride=4), nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=4, stride=2), nn.ReLU(),
-            nn.Conv2d(64, 64, kernel_size=3, stride=1), nn.ReLU(),
+            nn.Conv2d(4,  16, kernel_size=8, stride=4), nn.ReLU(),  # 16 filters (not 32)
+            nn.Conv2d(16, 32, kernel_size=4, stride=2), nn.ReLU(),  # 32 filters (not 64)
+            # No third conv layer in 2013 paper
         )
 
-        # Conv output: 7×7×64 = 3136
+        # Conv output: 9×9×32 = 2592
         self.fc = nn.Sequential(
-            nn.Linear(3136, 512), nn.ReLU(),
-            nn.Linear(512, n_actions),
+            nn.Linear(2592, 256), nn.ReLU(),  # 256 units (not 512)
+            nn.Linear(256, n_actions),
         )
 
     def forward(self, x):
