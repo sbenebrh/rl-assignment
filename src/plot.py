@@ -27,7 +27,7 @@ def plot_runs(run_ids, out_path):
     os.makedirs("plots", exist_ok=True)
     fig, ax = plt.subplots(figsize=(10, 6))
 
-    final_rewards = []
+    best_rewards = []
     colors = ["tab:blue", "tab:orange", "tab:green"]
 
     for i, run_id in enumerate(run_ids):
@@ -42,15 +42,15 @@ def plot_runs(run_ids, out_path):
         ax.plot(steps, rewards, color=color, linewidth=1.5, label=f"Run {run_id}")
         ax.scatter(steps, rewards, color=color, s=15, zorder=5)
 
-        final_rewards.append(rewards[-1])
+        best_rewards.append(rewards.max())
         print(f"  Run {run_id}: final eval reward = {rewards[-1]:.1f} "
               f"| best = {rewards.max():.1f} @ step {steps[rewards.argmax()]:,}")
 
-    if final_rewards:
-        mean = np.mean(final_rewards)
+    if best_rewards:
+        mean = np.mean(best_rewards)
         ax.axhline(mean, color="red", linestyle="--", linewidth=1.2,
-                   label=f"Mean final reward: {mean:.1f}")
-        print(f"\n  Average final reward across {len(final_rewards)} run(s): {mean:.1f}")
+                   label=f"Mean best reward: {mean:.1f}")
+        print(f"\n  Average best reward across {len(best_rewards)} run(s): {mean:.1f}")
 
     ax.set_xlabel("Training steps", fontsize=13)
     ax.set_ylabel("Mean eval reward (unclipped)", fontsize=13)
