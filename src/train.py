@@ -13,8 +13,8 @@ from src.agent import DQNAgent
 
 CONFIG = {
     "game":              "SeaquestNoFrameskip-v4",
-    "buffer_size":       500_000,   # paper uses 1M, 250k is a memory-conscious compromise
-    "batch_size":        256,       # larger batch to capture more dones/rewards (sparse signal)
+    "buffer_size":       250_000,   # paper uses 1M, 250k is a memory-conscious compromise
+    "batch_size":        64,       # larger batch to capture more dones/rewards (sparse signal)
     "gamma":             0.99,
     "lr":                0.0001,    # reduced to prevent Q-value explosion
     "eps_start":         1.0,
